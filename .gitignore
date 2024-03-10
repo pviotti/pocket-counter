@@ -1,0 +1,4 @@
+pocket-counter
+.env
+*.db
+.dev

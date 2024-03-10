@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Pocket Counter</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <style>
+        #unreadCount {
+            text-align: center;
+            font-size: 2em;
+            margin-top: 1em;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="unreadCount"></div>
+    <canvas id="chartCanvas"></canvas>
+    <script>
+        fetch('{{.UnreadURL}}').then(response =>
+            response.json()).then(data => {
+                console.log(data);
+                const dates = data.map(entry => entry.date.split('T')[0]);
+                const counts = data.map(entry => entry.unread_count);
+
+                const ctx = document.getElementById('chartCanvas');
+                const unreadCountElement = document.getElementById('unreadCount');
+                if (unreadCountElement) {
+                    unreadCountElement.innerText = counts[counts.length - 1];
+                }
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [{
+                            label: 'Unread articles',
+                            data: counts,
+                            borderColor: 'blue',
+                            fill: false,
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Unread articles'
+                                }
+                            }
+                        }
+                    }
+                });
+            }).catch(error => {
+                console.error('Error fetching data:', error);
+            })
+    </script>
+</body>
+
+</html>

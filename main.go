@@ -25,6 +25,7 @@ type PocketResponse struct {
 
 const POCKET_GET_URL = "https://getpocket.com/v3/get"
 const POCKET_GET_CONTENTTYPE = "application/json; charset=UTF-8"
+const SLEEP_TIME = 12 * time.Hour
 
 func main() {
 	consumerKey := os.Getenv("POCKET_CONSUMER_KEY")
@@ -35,6 +36,14 @@ func main() {
 		return
 	}
 
+	for {
+		fetchAndSave(consumerKey, accessToken)
+		log.Printf("Sleeping for %v hours", SLEEP_TIME.Hours())
+		time.Sleep(SLEEP_TIME)
+	}
+}
+
+func fetchAndSave(consumerKey, accessToken string) {
 	unreadCount, err := getUnreadCount(consumerKey, accessToken)
 	if err != nil {
 		log.Printf("Error getting unread count: %v\n", err)
@@ -47,7 +56,7 @@ func main() {
 		return
 	}
 
-	fmt.Printf("Unread count: %d\n", unreadCount)
+	log.Printf("Unread count: %d\n", unreadCount)
 }
 
 func getUnreadCount(consumerKey, accessToken string) (int, error) {

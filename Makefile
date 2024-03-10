@@ -12,4 +12,4 @@ build-docker:
 	docker build -t pviotti/$(APP_NAME) .
 
 run-docker:
-	docker run --env-file .env -p 8080:8080 pviotti/$(APP_NAME)
+	docker run --env-file .env -p 8080:8080 -v ./data:/app/data pviotti/$(APP_NAME)

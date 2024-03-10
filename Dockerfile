@@ -1,21 +1,15 @@
-FROM golang:1.22-alpine AS builder
+FROM golang:1.22
 
 WORKDIR /app
 
 COPY go.mod .
 COPY go.sum .
-
-RUN go mod download
+RUN go mod download && go mod verify
 
 COPY . .
-
 RUN go build -o pocket-counter .
 
-FROM alpine:3.19
-
-WORKDIR /app
-
-COPY --from=builder /app/pocket-counter .
+VOLUME /app/data
 
 EXPOSE 8080
 

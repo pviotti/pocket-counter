@@ -93,7 +93,7 @@ func getUnreadCount(consumerKey, accessToken string) (int, error) {
 }
 
 func saveToDatabase(unreadCount int) error {
-	db, err := sql.Open("sqlite3", "./pocket.db")
+	db, err := sql.Open("sqlite3", "./data/pocket.db")
 	if err != nil {
 		return fmt.Errorf("error opening database: %v", err)
 	}

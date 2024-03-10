@@ -46,6 +46,10 @@ func main() {
 		fmt.Printf("Error fetching data from Pocket: %v\n", err)
 		return
 	}
+	if resp.StatusCode != 200 {
+		fmt.Printf("Error fetching data from Pocket: %v\n", resp.Status)
+		return
+	}
 	defer resp.Body.Close()
 	// bodyBytes, err := io.ReadAll(resp.Body)
 	// if err != nil {

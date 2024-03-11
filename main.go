@@ -26,6 +26,7 @@ type PocketResponse struct {
 const POCKET_GET_URL = "https://getpocket.com/v3/get"
 const POCKET_GET_CONTENTTYPE = "application/json; charset=UTF-8"
 const SLEEP_TIME = 12 * time.Hour
+const DATABASE_PATH = "./data/pocket.db"
 
 func main() {
 	consumerKey := os.Getenv("POCKET_CONSUMER_KEY")
@@ -56,31 +57,43 @@ func startHTTPServer() {
 }
 
 func getUnreadCountHandler(w http.ResponseWriter, r *http.Request) {
-	unreadCount, err := getUnreadCountFromDatabase()
+	unreadCounts, err := getUnreadCountsForPastYearFromDB()
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error fetching unread count %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Error fetching unread count: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	response := map[string]int{"unread_count": unreadCount}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	json.NewEncoder(w).Encode(unreadCounts)
 }
 
-func getUnreadCountFromDatabase() (int, error) {
-	db, err := sql.Open("sqlite3", "./data/pocket.db")
+func getUnreadCountsForPastYearFromDB() ([]map[string]interface{}, error) {
+	db, err := sql.Open("sqlite3", DATABASE_PATH)
 	if err != nil {
-		return 0, fmt.Errorf("error opening database: %v", err)
+		return nil, fmt.Errorf("error opening database: %v", err)
 	}
 	defer db.Close()
 
-	var unreadCount int
-	row := db.QueryRow("select count from unread_count order by date desc limit 1")
-	if err := row.Scan(&unreadCount); err != nil {
-		return 0, fmt.Errorf("error scanning row: %v", err)
+	var unreadCounts []map[string]interface{}
+	rows, err := db.Query("select date, count from unread_count where date >= date('now', '-1 year') order by date")
+	if err != nil {
+		return nil, fmt.Errorf("error querying database: %v", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var date string
+		var count int
+		if err := rows.Scan(&date, &count); err != nil {
+			return nil, fmt.Errorf("error scanning row: %v", err)
+		}
+		unreadCounts = append(unreadCounts, map[string]interface{}{
+			"date":         date,
+			"unread_count": count,
+		})
 	}
 
-	return unreadCount, nil
+	return unreadCounts, nil
 }
 
 func fetchAndSave(consumerKey, accessToken string) {
@@ -133,7 +146,7 @@ func getUnreadCount(consumerKey, accessToken string) (int, error) {
 }
 
 func saveToDatabase(unreadCount int) error {
-	db, err := sql.Open("sqlite3", "./data/pocket.db")
+	db, err := sql.Open("sqlite3", DATABASE_PATH)
 	if err != nil {
 		return fmt.Errorf("error opening database: %v", err)
 	}

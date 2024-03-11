@@ -36,11 +36,51 @@ func main() {
 		return
 	}
 
+	go startHTTPServer()
+
 	for {
 		fetchAndSave(consumerKey, accessToken)
 		log.Printf("Sleeping for %v hours", SLEEP_TIME.Hours())
 		time.Sleep(SLEEP_TIME)
 	}
+}
+
+func startHTTPServer() {
+	http.Handle("/", http.FileServer(http.Dir("./static")))
+	http.HandleFunc("/unread", getUnreadCountHandler)
+
+	log.Println("Starting HTTP server on port 8080")
+	if err := http.ListenAndServe("localhost:8080", nil); err != nil {
+		log.Printf("Error starting HTTP server: %v", err)
+	}
+}
+
+func getUnreadCountHandler(w http.ResponseWriter, r *http.Request) {
+	unreadCount, err := getUnreadCountFromDatabase()
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error fetching unread count %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]int{"unread_count": unreadCount}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+func getUnreadCountFromDatabase() (int, error) {
+	db, err := sql.Open("sqlite3", "./data/pocket.db")
+	if err != nil {
+		return 0, fmt.Errorf("error opening database: %v", err)
+	}
+	defer db.Close()
+
+	var unreadCount int
+	row := db.QueryRow("select count from unread_count order by date desc limit 1")
+	if err := row.Scan(&unreadCount); err != nil {
+		return 0, fmt.Errorf("error scanning row: %v", err)
+	}
+
+	return unreadCount, nil
 }
 
 func fetchAndSave(consumerKey, accessToken string) {

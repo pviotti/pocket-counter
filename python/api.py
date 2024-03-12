@@ -1,33 +1,5 @@
-# Module to
-# 1. serve static HTML page
-# 2. serve API to retrieve unread counts
-# 3. periodically query Pocket API and retrieve unread count
-
-from flask import Flask, request, send_from_directory
-
-# app = Flask(__name__, static_url_path='', static_folder='static')
-# db = Database()
-
-# if app.debug:
-#     # pip install flask-cors
-#     from flask_cors import CORS
-#     CORS(app)
-
-# @app.route("/grep")
-# def grep():
-#     term = request.args.get('q')
-#     results = db.grep(term)
-#     return [res.to_dict() for res in results]
-
-# @app.route("/", defaults={'path':''})
-# def root(path):
-#     return send_from_directory(app.static_folder,'index.html')
-
-
-
 import requests
 import json
-import time
 import webbrowser
 
 # Replace with your actual Pocket API consumer key
@@ -92,6 +64,3 @@ if __name__ == '__main__':
     access_token = 'e9902fdb-ac38-f259-dc9b-da9a56'
     unread_count = get_unread_articles_count(access_token)
     print(f"unread count: {unread_count}")
-
-
-    #main()

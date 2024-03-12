@@ -51,7 +51,7 @@ func startHTTPServer() {
 	http.HandleFunc("/unread", getUnreadCountHandler)
 
 	log.Println("Starting HTTP server on port 8080")
-	if err := http.ListenAndServe("localhost:8080", nil); err != nil {
+	if err := http.ListenAndServe("0.0.0.0:8080", nil); err != nil {
 		log.Printf("Error starting HTTP server: %v", err)
 	}
 }

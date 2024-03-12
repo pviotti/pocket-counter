@@ -16,5 +16,16 @@ On the VPS, add this to `docker-compose.yml`:
      volumes:
       - ./data/pocket-counter:/app/data
 ```
-
 Then add appropriate environmens variables in `.env`.
+
+Caddyfile configuration:
+```
+pc.{$MY_DOMAIN} {
+  reverse_proxy pocketcounter:8080
+
+  log {
+    output file /logs/pc.log
+    level INFO
+  }
+}
+```

@@ -1,40 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <title>Pocket Counter</title>
-    <script src="./chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <style>
+        #unreadCount {
+            text-align: center;
+            font-size: 2em;
+            margin-top: 1em;
+        }
+    </style>
 </head>
+
 <body>
+    <div id="unreadCount"></div>
     <canvas id="chartCanvas"></canvas>
-    <script src="script.js"></script>
     <script>
-        // // Sample data: Replace this with your actual data
-        // const data = [
-        //     { date: "2024-03-01", count: 5 },
-        //     { date: "2024-03-02", count: 10 },
-        //     { date: "2024-03-03", count: 10 },
-        //     // ... more data entries
-        // ];
+        fetch('https://pc.vshed.xyz/unread').then(response =>
+            response.json()).then(data => {
+                console.log(data);
+                const dates = data.map(entry => entry.date.split('T')[0]);
+                const counts = data.map(entry => entry.unread_count);
 
-        // // Extract dates and counts for Chart.js
-        // const dates = data.map(entry => entry.date);
-        // const counts = data.map(entry => entry.count);
-
-        // // Create a chart using Chart.js
-        // const ctx = document.getElementById('chartCanvas');
-        // new Chart(ctx, {
-        //     type: 'line',
-        //     data: {
-        //         labels: dates,
-        //         datasets: [{
-        //             label: 'Unread Articles Count',
-        //             data: counts,
-        //             borderColor: 'blue',
-        //             fill: false,
-        //         }]
-        //     },
-        // });
-
+                const ctx = document.getElementById('chartCanvas');
+                const unreadCountElement = document.getElementById('unreadCount');
+                if (unreadCountElement) {
+                    unreadCountElement.innerText = counts[counts.length - 1];
+                }
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [{
+                            label: 'Unread articles',
+                            data: counts,
+                            borderColor: 'blue',
+                            fill: false,
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Unread articles'
+                                }
+                            }
+                        }
+                    }
+                });
+            }).catch(error => {
+                console.error('Error fetching data:', error);
+            })
     </script>
 </body>
+
 </html>

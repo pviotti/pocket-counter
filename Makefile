@@ -12,4 +12,7 @@ build-docker:
 	docker build -t pviotti/$(APP_NAME) .
 
 run-docker:
-	docker run --env-file .env -p 8080:8080 -v ./data:/app/data pviotti/$(APP_NAME)
+	docker run --network host --env-file .env -v ./data:/app/data pviotti/$(APP_NAME)
+
+sh-docker:
+	docker run -it --network host --env-file .env -v ./data:/app/data pviotti/$(APP_NAME) /bin/sh

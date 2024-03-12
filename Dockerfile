@@ -17,6 +17,7 @@ WORKDIR /app
 
 VOLUME /app/data
 
+COPY static /app/static
 COPY --from=builder /app/pocket-counter .
 
 EXPOSE 8080

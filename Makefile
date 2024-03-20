@@ -2,10 +2,10 @@
 APP_NAME=pocket-counter
 
 build:
-	go build -o $(APP_NAME) main.go
+	go build -o $(APP_NAME) .
 
 run:
-	go run main.go
+	go run .
 
 
 build-docker:

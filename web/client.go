@@ -5,11 +5,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
+	"time"
+
+	"github.com/hashicorp/go-retryablehttp"
 )
 
-const POCKET_GET_URL = "https://getpocket.com/v3/get"
-const POCKET_GET_CONTENTTYPE = "application/json; charset=UTF-8"
+const (
+	POCKET_GET_URL         = "https://getpocket.com/v3/get"
+	POCKET_GET_CONTENTTYPE = "application/json; charset=UTF-8"
+	MAX_RETRIES            = 5
+	TIMEOUT                = 10 * time.Second
+)
 
 type PocketRequest struct {
 	ConsumerKey string `json:"consumer_key"`
@@ -45,6 +51,11 @@ func GetUnreadCount(consumerKey, accessToken string) (int, error) {
 		Total:       1,
 	}
 
+	// Need to use retryablehttp because API returns HTTP 504 quite often
+	client := retryablehttp.NewClient()
+	client.RetryMax = MAX_RETRIES
+	client.HTTPClient.Timeout = TIMEOUT
+
 	totItems := 0
 
 	for {
@@ -54,7 +65,7 @@ func GetUnreadCount(consumerKey, accessToken string) (int, error) {
 			return 0, fmt.Errorf("error encoding request body: %v", err)
 		}
 
-		resp, err := http.Post(POCKET_GET_URL, POCKET_GET_CONTENTTYPE, bytes.NewBuffer(requestBodyBytes))
+		resp, err := client.Post(POCKET_GET_URL, POCKET_GET_CONTENTTYPE, bytes.NewBuffer(requestBodyBytes))
 		if err != nil {
 			log.Printf("Error fetching data from Pocket: %v\n", err)
 			return 0, fmt.Errorf("error fetching data from Pocket: %v", err)
@@ -75,7 +86,7 @@ func GetUnreadCount(consumerKey, accessToken string) (int, error) {
 			break
 		}
 
-		log.Printf("DEBUG: fetched %d new items", len(pocketResponse.List))
+		log.Printf("[DEBUG] fetched %d new items", len(pocketResponse.List))
 		totItems += len(pocketResponse.List)
 		requestBody.Offset += len(pocketResponse.List)
 	}
